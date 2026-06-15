@@ -2,16 +2,17 @@ import { useEffect, useState } from "react"
 import {
     createCategory,
     getCategories,
+    updateCategory,
     deleteCategory,
 } from "../../../services/api"
 
 export default function Categories() {
     const [categories, setCategories] = useState([])
-
     const [formData, setFormData] = useState({
         name: "",
         image: "",
     })
+    const [editingId, setEditingId] = useState(null)
 
     useEffect(() => {
         async function loadCategories() {
@@ -24,9 +25,21 @@ export default function Categories() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        const newCategory = await createCategory(formData)
+        if (editingId) {
+            const updatedCategory = await updateCategory(editingId, formData)
 
-        setCategories((prev) => [...prev, newCategory])
+            setCategories((prev) =>
+                prev.map((category) =>
+                    category.id === editingId ? updatedCategory : category,
+                ),
+            )
+
+            setEditingId(null)
+        } else {
+            const newCategory = await createCategory(formData)
+
+            setCategories((prev) => [...prev, newCategory])
+        }
 
         setFormData({
             name: "",
@@ -41,6 +54,16 @@ export default function Categories() {
             [name]: value,
         }))
     }
+
+    const handleEdit = (category) => {
+        setEditingId(category.id)
+
+        setFormData({
+            name: category.name,
+            image: category.image,
+        })
+    }
+
     const handleDelete = async (id) => {
         await deleteCategory(id)
 
@@ -68,7 +91,9 @@ export default function Categories() {
                     required
                 />
 
-                <button type="submit">Adicionar Categoria</button>
+                <button type="submit">
+                    {editingId ? "Salvar Alterações" : "Adicionar Categoria"}
+                </button>
             </form>
             {categories.map((category) => (
                 <div key={category.id}>
@@ -79,7 +104,7 @@ export default function Categories() {
                     />
 
                     <h3>{category.name}</h3>
-
+                    <button onClick={() => handleEdit(category)}>Editar</button>
                     <button onClick={() => handleDelete(category.id)}>
                         Excluir
                     </button>

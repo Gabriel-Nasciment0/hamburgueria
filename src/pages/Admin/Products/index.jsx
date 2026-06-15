@@ -4,6 +4,7 @@ import {
     getProducts,
     updateProduct,
     deleteProduct,
+    getCategories,
 } from "../../../services/api"
 
 export default function AdminProducts() {
@@ -16,14 +17,18 @@ export default function AdminProducts() {
     })
     const [editingProduct, setEditingProduct] = useState(null)
     const [products, setProducts] = useState([])
+    const [categories, setCategories] = useState([])
 
     useEffect(() => {
-        async function loadProducts() {
-            const data = await getProducts()
-            setProducts(data)
+        async function loadData() {
+            const productsData = await getProducts()
+            const categoriesData = await getCategories()
+
+            setProducts(productsData)
+            setCategories(categoriesData)
         }
 
-        loadProducts()
+        loadData()
     }, [])
 
     const handleSubmit = async (e) => {
@@ -133,9 +138,15 @@ export default function AdminProducts() {
                     required
                 >
                     <option value="">Selecione</option>
-                    <option value="Hambúrguer">Hambúrguer</option>
-                    <option value="Pizza">Pizza</option>
-                    <option value="Japonesa">Japonesa</option>
+
+                    {categories.map((category) => (
+                        <option
+                            key={category.id}
+                            value={category.name}
+                        >
+                            {category.name}
+                        </option>
+                    ))}
                 </select>
 
                 <button type="submit">
